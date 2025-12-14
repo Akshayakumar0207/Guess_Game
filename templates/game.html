@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Area</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="card">
+    <h3 id="round">Waiting...</h3>
+    <h2 id="hint">Connecting...</h2>
+
+    <input id="ans" placeholder="Your Answer">
+    <button onclick="submitAnswer()">Submit</button>
+
+    <h3 id="score">Score: 0</h3>
+</div>
+
+<script>
+const code = new URLSearchParams(window.location.search).get("code");
+const player = Math.random().toString(36).substring(2);
+
+function loadQuestion() {
+    fetch(`/question/${code}`)
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.wait) {
+            document.getElementById("round").innerText = "";
+            document.getElementById("hint").innerText =
+                "⏳ Waiting for Player 2...";
+            return;
+        }
+
+        if (data.end) {
+            document.body.innerHTML =
+                `<h1>🎉 Game Over<br>Final Score: ${data.score}</h1>`;
+            return;
+        }
+
+        document.getElementById("round").innerText =
+            `Round ${data.round} | Question ${data.question} | +${data.points}`;
+
+        document.getElementById("hint").innerText =
+            "Hint: " + data.hint;
+
+        document.getElementById("score").innerText =
+            "Score: " + data.score;
+    });
+}
+
+function submitAnswer() {
+    const answer = document.getElementById("ans").value;
+    if (!answer) return;
+
+    fetch(`/submit/${code}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            player: player,
+            answer: answer
+        })
+    });
+
+    document.getElementById("ans").value = "";
+}
+
+// Poll server every 2 seconds
+setInterval(loadQuestion, 2000);
+loadQuestion();
+</script>
+
+</body>
+</html>

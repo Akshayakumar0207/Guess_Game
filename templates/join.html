@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Join Game</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="card">
+    <h2>🎮 Guess Together</h2>
+
+    <button onclick="createRoom()">Create Room</button>
+    <h3 id="room"></h3>
+
+    <input id="code" placeholder="Enter Room Code">
+    <button onclick="joinRoom()">Join Room</button>
+</div>
+
+<script>
+function createRoom() {
+    fetch("/create")
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("room").innerText =
+            "Room Code: " + data.code;
+    });
+}
+
+function joinRoom() {
+    const code = document.getElementById("code").value.toUpperCase();
+    fetch("/join", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({code})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            window.location.href = "/game?code=" + code;
+        } else {
+            alert("❌ Invalid or Full Room");
+        }
+    });
+}
+</script>
+
+</body>
+</html>
